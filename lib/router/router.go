@@ -9,11 +9,13 @@ import (
 
 	"boilerplate-api/lib/config"
 	"boilerplate-api/lib/middlewares"
+	"boilerplate-api/lib/telemetry"
 
 	"github.com/getsentry/sentry-go"
 	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
 // Router Gin Router
@@ -28,6 +30,7 @@ func NewRouter(
 	logger config.Logger,
 	database config.Database,
 	idempotency middlewares.IdempotencyMiddleware,
+	metrics telemetry.Metrics,
 ) Router {
 	appEnv := env.Environment
 
@@ -57,6 +60,11 @@ func NewRouter(
 	// RequestID must run before anything that might log or emit errors so the
 	// request id is available in error envelopes and Sentry events.
 	httpRouter.Use(middlewares.RequestID())
+	// Tracing and metrics run early so spans/latency cover the full handler
+	// chain. otelgin extracts inbound W3C trace context and starts a server
+	// span named after the matched route.
+	httpRouter.Use(otelgin.Middleware(env.ServiceName))
+	httpRouter.Use(metrics.Middleware())
 	httpRouter.Use(cors.New(buildCorsConfig(env)))
 	httpRouter.Use(middlewares.ErrorHandler(logger))
 	// Idempotency is mounted globally and self-gates: it only acts on POST
@@ -98,6 +106,10 @@ func NewRouter(
 	}
 	httpRouter.GET("/health-check", healthCheck)
 	httpRouter.GET("/readyz", healthCheck)
+
+	if metrics.Enabled {
+		httpRouter.GET("/metrics", metrics.Handler())
+	}
 
 	api := httpRouter.Group("/api")
 	v1 := api.Group("/v1")

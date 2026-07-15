@@ -1,0 +1,7 @@
+apiVersion: v2
+name: gin-skeleton
+description: Helm chart for the go-gin-skeleton microservice (HTTP + gRPC).
+type: application
+version: 0.1.0
+# Overridden by image.tag when set; otherwise used as the container tag.
+appVersion: "0.1.0"

@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package user.v1;
+
+option go_package = "boilerplate-api/proto/gen/go/user/v1;userv1";
+
+// UserService is the synchronous inter-service contract for reading user
+// records. Peer services dial this via the gRPC client factory
+// (lib/grpcclient) rather than talking to this service's database directly.
+service UserService {
+  // GetUser returns a single user by id.
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}
+
+message User {
+  string id = 1;
+  string email = 2;
+  string full_name = 3;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}

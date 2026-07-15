@@ -12,4 +12,5 @@ var Module = fx.Module("user",
 			NewController,
 		),
 		fx.Invoke(SetupRoutes),
+		fx.Invoke(RegisterSubscribers),
 	))

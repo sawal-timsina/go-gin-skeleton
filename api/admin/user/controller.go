@@ -6,9 +6,11 @@ import (
 	"boilerplate-api/lib/api_errors"
 	"boilerplate-api/lib/config"
 	"boilerplate-api/lib/constants"
+	"boilerplate-api/lib/events"
 	"boilerplate-api/lib/json_response"
 	"boilerplate-api/lib/request_validator"
 	"boilerplate-api/lib/utils"
+
 	"github.com/gin-gonic/gin"
 
 	"gorm.io/gorm"
@@ -19,6 +21,7 @@ type Controller struct {
 	userService Service
 	env         config.Env
 	validator   request_validator.Validator
+	broker      events.Broker
 }
 
 // NewController Creates New user controller
@@ -27,12 +30,14 @@ func NewController(
 	userService Service,
 	env config.Env,
 	validator request_validator.Validator,
+	broker events.Broker,
 ) Controller {
 	return Controller{
 		logger:      logger,
 		userService: userService,
 		env:         env,
 		validator:   validator,
+		broker:      broker,
 	}
 }
 
@@ -114,6 +119,17 @@ func (cc Controller) CreateUser(c *gin.Context) {
 			},
 		)
 		return
+	}
+
+	// Announce creation so peer services can react. Publishing after the
+	// handler returns 200 (and the DB transaction commits) is a pragmatic
+	// at-least-once emit; a publish failure is logged, not fatal, to keep the
+	// API response decoupled from broker availability.
+	if err := cc.broker.Publish(c.Request.Context(), EventUserCreated, UserCreatedEvent{
+		Email: reqData.Email,
+		Phone: reqData.Phone,
+	}); err != nil {
+		cc.logger.Warn("failed to publish ", EventUserCreated, ": ", err.Error())
 	}
 
 	c.JSON(

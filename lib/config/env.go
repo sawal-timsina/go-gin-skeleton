@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"log"
+	"os"
+	"reflect"
 	"strings"
 	"time"
 
@@ -19,6 +21,36 @@ type Env struct {
 	Environment string `mapstructure:"ENVIRONMENT" validate:"required,oneof=local development production test"`
 	LogOutput   string `mapstructure:"LOG_OUTPUT"`
 	LogLevel    string `mapstructure:"LOG_LEVEL"`
+
+	// --- Microservice identity & topology ---
+	// ServiceName identifies this service in traces, metrics and event
+	// metadata. Defaults to "gin-skeleton" when unset.
+	ServiceName    string `mapstructure:"SERVICE_NAME"`
+	ServiceVersion string `mapstructure:"SERVICE_VERSION"`
+
+	// GRPCPort is the port the gRPC server listens on. Empty disables gRPC.
+	GRPCPort string `mapstructure:"GRPC_PORT"`
+
+	// ServiceEndpoints is a comma-separated registry of peer services in the
+	// form "name=host:port,other=host:port". Parsed into Endpoints for the
+	// gRPC client factory to dial. This is the 12-factor, config-driven
+	// alternative to a discovery server; swap for Consul/etcd if needed.
+	ServiceEndpoints string            `mapstructure:"SERVICE_ENDPOINTS"`
+	Endpoints        map[string]string `mapstructure:"-"`
+
+	// --- Telemetry ---
+	// OtelExporterEndpoint is the OTLP/gRPC collector address (e.g.
+	// "otel-collector:4317"). Empty disables trace export.
+	OtelExporterEndpoint string  `mapstructure:"OTEL_EXPORTER_OTLP_ENDPOINT"`
+	OtelTraceSampleRatio float64 `mapstructure:"OTEL_TRACE_SAMPLE_RATIO"`
+	MetricsEnabled       bool    `mapstructure:"METRICS_ENABLED"`
+
+	// --- Async messaging ---
+	// NatsURL points at the NATS server (e.g. "nats://nats:4222"). Empty
+	// selects the no-op broker so the service runs without a broker present.
+	NatsURL            string `mapstructure:"NATS_URL"`
+	NatsStreamName     string `mapstructure:"NATS_STREAM_NAME"`
+	EventSubjectPrefix string `mapstructure:"EVENT_SUBJECT_PREFIX"`
 
 	DBType     string `mapstructure:"DB_TYPE" validate:"required"`
 	DBUsername string `mapstructure:"DB_USERNAME" validate:"required"`
@@ -88,18 +120,27 @@ func (p EnvPath) ToString() string {
 	return string(p)
 }
 
-// NewEnv creates a new environment
+// NewEnv creates a new environment.
+//
+// Configuration is loaded from the env file when present (local development)
+// and always overlaid with real environment variables (12-factor container
+// deploys). A missing env file is NOT fatal — in Kubernetes the file is absent
+// and every value arrives via the environment; only a malformed file aborts
+// startup. Required values are still enforced by validateEnv below.
 func NewEnv(envPath EnvPath) Env {
 	env := Env{}
 	_ = godotenv.Load(envPath.ToString())
-	viper.SetConfigFile(envPath.ToString())
 
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			log.Fatalf("☠️ Env config file not found: %+v", err)
-		} else {
+	viper.AutomaticEnv()
+	bindEnvVars(env)
+
+	if _, statErr := os.Stat(envPath.ToString()); statErr == nil {
+		viper.SetConfigFile(envPath.ToString())
+		if err := viper.ReadInConfig(); err != nil {
 			log.Fatalf("☠️ Env config file error: %+v", err)
 		}
+	} else {
+		log.Printf("ℹ️ no env file at %q; reading configuration from environment", envPath.ToString())
 	}
 
 	if err := viper.Unmarshal(&env); err != nil {
@@ -110,11 +151,68 @@ func NewEnv(envPath EnvPath) Env {
 		env.TimeZone = "UTC"
 	}
 
+	if env.ServiceName == "" {
+		env.ServiceName = "gin-skeleton"
+	}
+	if env.ServiceVersion == "" {
+		env.ServiceVersion = "dev"
+	}
+	if env.EventSubjectPrefix == "" {
+		env.EventSubjectPrefix = env.ServiceName
+	}
+	if env.NatsStreamName == "" {
+		env.NatsStreamName = "EVENTS"
+	}
+	// Default to full sampling in non-production so local traces are complete;
+	// production should lower this via OTEL_TRACE_SAMPLE_RATIO.
+	if env.OtelTraceSampleRatio == 0 {
+		if env.Environment == "production" {
+			env.OtelTraceSampleRatio = 0.1
+		} else {
+			env.OtelTraceSampleRatio = 1.0
+		}
+	}
+
+	env.Endpoints = parseEndpoints(env.ServiceEndpoints)
+
 	if err := validateEnv(&env); err != nil {
 		log.Fatalf("☠️ environment validation failed:\n%s", err.Error())
 	}
 
 	return env
+}
+
+// bindEnvVars registers every mapstructure key with viper so that
+// AutomaticEnv values are picked up by Unmarshal even when no config file is
+// present (viper only merges env vars for keys it knows about).
+func bindEnvVars(iface any) {
+	t := reflect.TypeOf(iface)
+	for i := 0; i < t.NumField(); i++ {
+		tag := t.Field(i).Tag.Get("mapstructure")
+		if tag == "" || tag == "-" {
+			continue
+		}
+		_ = viper.BindEnv(tag)
+	}
+}
+
+// parseEndpoints turns a "name=host:port,other=host:port" string into a map.
+// Malformed pairs (missing '=') are skipped so a typo can't crash startup.
+func parseEndpoints(s string) map[string]string {
+	out := map[string]string{}
+	for _, pair := range strings.Split(s, ",") {
+		pair = strings.TrimSpace(pair)
+		if pair == "" {
+			continue
+		}
+		name, addr, ok := strings.Cut(pair, "=")
+		name, addr = strings.TrimSpace(name), strings.TrimSpace(addr)
+		if !ok || name == "" || addr == "" {
+			continue
+		}
+		out[name] = addr
+	}
+	return out
 }
 
 // validateEnv runs struct validation and aggregates all issues into a single

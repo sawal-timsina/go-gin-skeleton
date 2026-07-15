@@ -61,6 +61,36 @@ services:
     volumes:
       - boilerplate_redis:/data
 
+  # --- Microservice infrastructure ---
+
+  # Async event bus. Set NATS_URL=nats://nats:4222 in .env to enable.
+  nats:
+    image: nats:2.10-alpine
+    container_name: boilerplate-nats
+    command: ["-js"] # enable JetStream
+    ports:
+      - "4222:4222" # client
+      - "8222:8222" # monitoring
+
+  # Trace collector. Set OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317 in .env.
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.109.0
+    container_name: boilerplate-otel
+    command: ["--config=/etc/otel/config.yaml"]
+    volumes:
+      - ./docker/observability/otel-collector-config.yaml:/etc/otel/config.yaml:ro
+    ports:
+      - "4317:4317" # OTLP gRPC
+
+  # Metrics scraper (scrapes web:/metrics). Visit http://localhost:9091.
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: boilerplate-prometheus
+    volumes:
+      - ./docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9091:9090"
+
 volumes:
   boilerplate_db:
   boilerplate_redis:

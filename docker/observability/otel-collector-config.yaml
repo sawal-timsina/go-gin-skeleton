@@ -1,0 +1,22 @@
+# Minimal OpenTelemetry Collector pipeline for local development. Receives
+# OTLP/gRPC spans from the app and logs them; point the exporter at Jaeger,
+# Tempo, or an APM vendor in real environments.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  batch: {}
+
+exporters:
+  debug:
+    verbosity: normal
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]

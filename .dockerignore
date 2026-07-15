@@ -1,0 +1,10 @@
+.git
+.github
+.circleci
+tmp
+*.md
+.env
+.env.*
+serviceAccountKey.json
+deploy
+.vscode

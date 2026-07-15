@@ -1,0 +1,10 @@
+{{ include "gin-skeleton.fullname" . }} deployed.
+
+HTTP  : port {{ .Values.service.httpPort }} (health: /livez, /readyz; metrics: /metrics)
+gRPC  : port {{ .Values.service.grpcPort }}
+
+Port-forward locally:
+  kubectl port-forward svc/{{ include "gin-skeleton.fullname" . }} {{ .Values.service.httpPort }}:{{ .Values.service.httpPort }}
+
+Remember to supply secrets (DB_PASSWORD, JWT_ACCESS_SECRET, JWT_REFRESH_SECRET),
+e.g. --set secrets.JWT_ACCESS_SECRET=... or via .Values.existingSecret.

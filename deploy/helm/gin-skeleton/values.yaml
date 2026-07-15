@@ -1,0 +1,79 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/your-org/gin-skeleton
+  # Defaults to Chart.appVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  httpPort: 8080
+  grpcPort: 9090
+
+# Non-secret configuration. Rendered into a ConfigMap and injected as env vars,
+# so it flows through the same 12-factor path as lib/config.Env.
+config:
+  ENVIRONMENT: production
+  SERVICE_NAME: gin-skeleton
+  SERVER_PORT: "8080"
+  GRPC_PORT: "9090"
+  LOG_LEVEL: info
+  DB_TYPE: mysql
+  DB_HOST: mysql
+  DB_PORT: "3306"
+  DB_NAME: boilerplate
+  DB_USERNAME: root
+  METRICS_ENABLED: "true"
+  IDEMPOTENCY_STORE: ""
+  NATS_URL: ""
+  OTEL_EXPORTER_OTLP_ENDPOINT: ""
+  # Peer service registry for inter-service gRPC (name=host:port,...).
+  SERVICE_ENDPOINTS: ""
+
+# Secret values. Rendered into a Secret and injected as env vars. Supply via
+# --set secrets.DB_PASSWORD=... or (preferably) an external/sealed secret.
+secrets: {}
+  # DB_PASSWORD: ""
+  # JWT_ACCESS_SECRET: ""
+  # JWT_REFRESH_SECRET: ""
+
+# Reference an existing Secret instead of the chart-managed one.
+existingSecret: ""
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+# Prometheus Operator ServiceMonitor (requires the CRD to be installed).
+serviceMonitor:
+  enabled: false
+  interval: 15s
+  path: /metrics
+
+podAnnotations: {}
+podSecurityContext:
+  runAsNonRoot: true
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -68,6 +68,18 @@ run:
 context-upload:
 	bash automate/scripts/ci-upload.sh
 
+# Install the protobuf toolchain (buf + Go plugins). Binaries land in
+# $(go env GOPATH)/bin, which must be on PATH.
+proto-tools:
+	go install github.com/bufbuild/buf/cmd/buf@v1.47.2
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
+
+# Lint and (re)generate Go code from the .proto contracts in proto/.
+proto:
+	buf lint
+	buf generate
+
 # This is a catch-all target to prevent make from complaining
 # when we pass additional arguments to our targets, like `make migrate diff`.
 # It assumes that the extra arguments are for the script and not other make targets.
@@ -75,4 +87,4 @@ context-upload:
 %:
 	@# This is a deliberate empty recipe
 
-.PHONY: dao migrate create swagger test-repo lint-install context-upload
+.PHONY: dao migrate create swagger test-repo lint-install context-upload proto proto-tools

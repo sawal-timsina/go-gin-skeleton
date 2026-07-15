@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+
+# Note: api/admin/gcp_billing is a pre-existing, unwired sample package that
+# references an undefined type; it is excluded from build/vet/test until fixed.
+env:
+  PKGS_EXCLUDE: /api/admin/gcp_billing
+
+jobs:
+  lint-build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      # webp is a cgo package, so a C toolchain is required to build.
+      - name: Install C toolchain
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: Install protobuf plugins
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
+
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: 1.47.2
+
+      - name: Proto lint
+        run: buf lint
+
+      - name: Verify generated code is up to date
+        run: |
+          buf generate
+          git diff --exit-code -- proto/gen
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
+      - name: Build
+        run: go build $(go list ./... | grep -v "$PKGS_EXCLUDE")
+
+      - name: Vet
+        run: go vet $(go list ./... | grep -v "$PKGS_EXCLUDE")
+
+      # Repository/integration tests that need MySQL are gated behind a DB
+      # service; add one (services: mysql:) and a .test.env before enabling
+      # the full suite. This runs the tests that don't require external infra.
+      - name: Test
+        run: go test $(go list ./... | grep -v "$PKGS_EXCLUDE")
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: gin-skeleton:ci

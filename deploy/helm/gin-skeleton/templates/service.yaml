@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "gin-skeleton.fullname" . }}
+  labels:
+    {{- include "gin-skeleton.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "gin-skeleton.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.httpPort }}
+      targetPort: http
+    - name: grpc
+      port: {{ .Values.service.grpcPort }}
+      targetPort: grpc

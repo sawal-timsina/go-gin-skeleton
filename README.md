@@ -23,6 +23,12 @@
   - [gentool](https://gorm.io/gen/): to generate dao objects from database
   - [swag](https://github.com/swaggo/swag): to generate swagger docs
   - [air](https://github.com/air-verse/air): hot-reload
+- Microservice building blocks (see [Microservice Architecture](#microservice-architecture))
+  - gRPC surface (protobuf contracts via [buf](https://buf.build), health + reflection)
+  - Async events over [NATS JetStream](https://docs.nats.io/nats-concepts/jetstream)
+  - Distributed tracing ([OpenTelemetry](https://opentelemetry.io)) + [Prometheus](https://prometheus.io) metrics
+  - 12-factor config (env-var-only friendly), inter-service gRPC client factory
+  - Production Dockerfile, Helm chart, and GitHub Actions CI
 
 **For Debugging 🐞** Debugger runs at `5002`. Vs code configuration is at `.vscode/launch.json` which will attach
 debugger to remote application.
@@ -63,6 +69,107 @@ debugger to remote application.
 
 - Package name: github.com/readytowork-org/go_gcp_service
 - Github: https://github.com/readytowork-org/go_gcp_service
+
+## Microservice Architecture
+
+This skeleton ships as a well-formed microservice: it serves HTTP **and** gRPC,
+publishes/consumes async events, emits traces and metrics, and packages for
+Kubernetes. Every piece self-gates on configuration, so the service also runs
+fine standalone with none of the infrastructure present.
+
+### Configuration (12-factor)
+
+`lib/config/env.go` reads an env file when present (local dev) and always
+overlays real environment variables. **The env file is optional** — in a
+container, config comes entirely from the environment (ConfigMap/Secret), so no
+`.env` needs to be baked into the image. Required values are still validated at
+startup. New variables (all optional) are documented in `.env.example`:
+
+| Variable | Purpose |
+|----------|---------|
+| `SERVICE_NAME` / `SERVICE_VERSION` | Identity in traces/metrics/events |
+| `GRPC_PORT` | gRPC listen port (empty disables gRPC) |
+| `SERVICE_ENDPOINTS` | Peer registry `name=host:port,...` for gRPC clients |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP/gRPC collector (empty = no export) |
+| `OTEL_TRACE_SAMPLE_RATIO` | Trace sampling 0.0–1.0 |
+| `METRICS_ENABLED` | Expose `/metrics` |
+| `NATS_URL` | Event broker (empty = no-op broker) |
+| `NATS_STREAM_NAME` / `EVENT_SUBJECT_PREFIX` | JetStream stream + subject namespace |
+
+### gRPC
+
+Contracts live in `proto/` and are compiled with **buf**; generated Go is
+committed under `proto/gen/go`.
+
+```sh
+make proto-tools   # one-time: install buf + protoc-gen-go(-grpc)
+make proto         # buf lint + buf generate
+```
+
+- `lib/grpcserver` runs a gRPC server alongside HTTP under the same fx
+  lifecycle, with OpenTelemetry interceptors, panic recovery, the standard
+  gRPC **health** service, and **reflection** (for `grpcurl`).
+- Feature modules attach handlers via `fx.Invoke` — see
+  `api/user/user/grpc.go`, which implements `UserService.GetUser` by reusing
+  the *same* domain `Service` the HTTP handlers use.
+- `lib/grpcclient` is a factory for dialling peers resolved from
+  `SERVICE_ENDPOINTS`, with shared connections, OTel instrumentation, and a
+  retry policy.
+
+### Async events
+
+`lib/events` defines a `Broker` with a NATS JetStream backend (durable,
+at-least-once) and a no-op fallback selected when `NATS_URL` is empty. Events
+use a CloudEvents-style envelope carrying a W3C `traceparent`, so a consumer
+continues the producer's distributed trace. `api/admin/user` publishes
+`user.created` on user creation; `subscriber.go` shows the consuming side.
+
+### Observability
+
+- **Tracing**: `lib/telemetry` installs W3C propagators always and exports
+  spans via OTLP when `OTEL_EXPORTER_OTLP_ENDPOINT` is set. `otelgin` and
+  `otelgrpc` create server spans automatically.
+- **Metrics**: RED (rate/errors/duration) metrics plus Go/process collectors
+  are exposed at `GET /metrics` (when `METRICS_ENABLED=true`), labelled by the
+  matched route template to stay low-cardinality.
+- **Health**: `/livez`, `/readyz`, `/health-check` (HTTP) and the gRPC health
+  service.
+
+### Local infrastructure
+
+`docker-compose.yml` includes `nats`, `otel-collector`, and `prometheus`
+services. Enable them by pointing the app at them in `.env`:
+
+```sh
+NATS_URL=nats://nats:4222
+OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
+```
+
+Prometheus UI: <http://localhost:9091>.
+
+### Deployment
+
+- **Image**: root `Dockerfile` is a multi-stage, non-root production build
+  (distinct from the hot-reload `docker/web.Dockerfile`).
+- **Kubernetes**: `deploy/helm/gin-skeleton` is a Helm chart with Deployment
+  (HTTP + gRPC ports, liveness `/livez`, readiness `/readyz`), Service,
+  ConfigMap, Secret, optional HPA and `ServiceMonitor`.
+
+  ```sh
+  helm upgrade --install my-svc deploy/helm/gin-skeleton \
+    --set image.repository=your-registry/gin-skeleton \
+    --set secrets.JWT_ACCESS_SECRET=... \
+    --set secrets.JWT_REFRESH_SECRET=... \
+    --set secrets.DB_PASSWORD=...
+  ```
+
+- **CI**: `.github/workflows/ci.yml` runs buf lint, a generated-code drift
+  check, golangci-lint, build, vet, tests, and a Docker build.
+
+> **Build note:** the project uses a cgo dependency (`chai2010/webp`), so a C
+> toolchain is required to compile the full binary (the Dockerfile and CI
+> install one). The pre-existing, unwired `api/admin/gcp_billing` sample
+> package does not compile and is excluded in CI.
 
 ## Swagger docs config
 

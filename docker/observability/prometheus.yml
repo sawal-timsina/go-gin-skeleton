@@ -1,0 +1,10 @@
+# Prometheus scrape config for local development. Scrapes the app's /metrics
+# endpoint exposed by lib/telemetry.
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: gin-skeleton
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["web:8000"]

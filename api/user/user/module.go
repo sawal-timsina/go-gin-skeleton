@@ -10,6 +10,8 @@ var Module = fx.Module("user",
 			NewRepository,
 			NewService,
 			NewController,
+			NewGRPCHandler,
 		),
 		fx.Invoke(SetupRoutes),
+		fx.Invoke(RegisterGRPC),
 	))
