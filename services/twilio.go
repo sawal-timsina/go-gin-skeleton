@@ -49,26 +49,27 @@ type SuccessResponse struct {
 	} `json:"subresource_uris"`
 }
 
-type tLogger interface {
-	Info(args ...interface{})
-	Error(args ...interface{})
-	Errorf(template string, args ...interface{})
-}
-
 // TwilioService twilio service structure
 type TwilioService struct {
 	baseURL   string
 	smsFrom   string
 	sID       string
 	authToken string
-	logger    tLogger
 }
 
 // NewTwilioService creates new twilio service
 func NewTwilioService(
-	twilioService TwilioService,
+	baseURL string,
+	smsFrom string,
+	sID string,
+	authToken string,
 ) TwilioService {
-	return twilioService
+	return TwilioService{
+		baseURL:   baseURL,
+		smsFrom:   smsFrom,
+		sID:       sID,
+		authToken: authToken,
+	}
 }
 
 // SMSInput input for sms
@@ -80,8 +81,6 @@ type SMSInput struct {
 
 func (t TwilioService) SendSMS(input SMSInput) (*SuccessResponse, *ErrorResponse, error) {
 	url := fmt.Sprintf("%s/Accounts/%s/Messages.json", t.baseURL, t.sID)
-
-	t.logger.Info(url)
 
 	method := "POST"
 
@@ -104,7 +103,6 @@ func (t TwilioService) SendSMS(input SMSInput) (*SuccessResponse, *ErrorResponse
 	}
 
 	token := fmt.Sprintf("Basic %s", t.getBasicToken())
-	t.logger.Info(token)
 
 	req.Header.Add("Authorization", token)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
@@ -149,11 +147,9 @@ func (t TwilioService) MessageSuccess(payload PhoneMessage) error {
 		Body: payload.Message,
 	})
 	if err != nil {
-		t.logger.Error("user message send error: ", err.Error())
 		return err
 	}
 	if twilioErr != nil {
-		t.logger.Errorf("twilio message send error: %+v \n", twilioErr)
 		return err
 	}
 	return nil

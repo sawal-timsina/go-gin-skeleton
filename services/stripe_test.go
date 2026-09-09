@@ -93,7 +93,6 @@ func TestCreateCustomer(t *testing.T) {
 		StripeConfig{
 			stripeSecretKey: env.StripeSecretKey,
 			stripeProductID: env.StripeProductID,
-			logger:          config.GetLogger().SugaredLogger,
 		},
 	)
 	stripeBackendMock.On(
@@ -150,7 +149,6 @@ func TestCreateSubscription(t *testing.T) {
 		StripeConfig{
 			stripeSecretKey: env.StripeSecretKey,
 			stripeProductID: env.StripeProductID,
-			logger:          config.GetLogger().SugaredLogger,
 		},
 	)
 	stripeBackendMock.On(
@@ -194,7 +192,6 @@ func TestCreatePrices(t *testing.T) {
 		StripeConfig{
 			stripeSecretKey: env.StripeSecretKey,
 			stripeProductID: env.StripeProductID,
-			logger:          config.GetLogger().SugaredLogger,
 		},
 	)
 
@@ -235,7 +232,6 @@ func TestPaymentIntent(t *testing.T) {
 		StripeConfig{
 			stripeSecretKey: env.StripeSecretKey,
 			stripeProductID: env.StripeProductID,
-			logger:          config.GetLogger().SugaredLogger,
 		},
 	)
 

@@ -1,19 +1,15 @@
 package services
 
 import (
+	"net/http"
+
 	"github.com/stripe/stripe-go/v76"
 	"github.com/stripe/stripe-go/v76/client"
-	"net/http"
 )
-
-type sLogger interface {
-	Info(args ...interface{})
-}
 
 type StripeConfig struct {
 	stripeSecretKey string
 	stripeProductID string
-	logger          sLogger
 }
 
 type CustomerSubscription struct {
@@ -37,7 +33,6 @@ func NewStripeService(
 ) StripeService {
 	_client := &client.API{}
 	_client.Init(stripeConfig.stripeSecretKey, nil)
-	stripeConfig.logger.Info("✅ Stripe client created.")
 	return StripeService{
 		API:             _client,
 		stripeProductID: stripeConfig.stripeProductID,
