@@ -3,9 +3,10 @@ package gcp_billing
 import (
 	"net/http"
 
-	"boilerplate-api/lib/config"
-	"boilerplate-api/lib/json_response"
+	"boilerplate-api/internal/config"
+	"boilerplate-api/internal/json_response"
 	"boilerplate-api/services/gcp_services"
+
 	"cloud.google.com/go/billing/budgets/apiv1/budgetspb"
 	"google.golang.org/api/cloudbilling/v1"
 

@@ -1,13 +1,14 @@
 package middlewares
 
 import (
+	"boilerplate-api/internal/api_errors"
+	"boilerplate-api/internal/constants"
+	"boilerplate-api/internal/json_response"
 	"net/http"
 	"strings"
 
-	"boilerplate-api/lib/api_errors"
-	"boilerplate-api/lib/constants"
-	"boilerplate-api/lib/json_response"
 	"boilerplate-api/services"
+
 	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
 )

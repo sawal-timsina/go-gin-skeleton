@@ -1,10 +1,10 @@
 package seeds
 
 import (
+	"boilerplate-api/internal/config"
 	"context"
 
-	"boilerplate-api/lib/config"
-	"boilerplate-api/lib/constants"
+	"boilerplate-api/internal/constants"
 	"boilerplate-api/services"
 )
 

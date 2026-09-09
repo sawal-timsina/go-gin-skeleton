@@ -16,7 +16,7 @@
   - Rate Limit (per-user when authenticated, per-IP otherwise)
   - DB Transaction (scoped to write methods only)
   - Request ID (`X-Request-ID`, surfaces in error envelope `trace_id`)
-  - Structured error envelope + central handler (`lib/api_errors`)
+  - Structured error envelope + central handler (`pkg`)
   - Idempotency-Key (replays POST responses; MySQL or Redis backend, see below)
 - CLI tools
     - [atlas](https://atlasgo.io/): for DB migrations
@@ -70,7 +70,7 @@ debugger to remote application.
 
 ## Run CLI 🖥
 
-The CLI mode is gated by `os.Args[1] == "cli"` (see `lib/utils/isCli.go`). Any
+The CLI mode is gated by `os.Args[1] == "cli"` (see `pkg`). Any
 binary built from this project enters interactive CLI mode when launched with
 that argument; otherwise it serves HTTP.
 
@@ -115,7 +115,7 @@ and registering it in the `seeds.Module`.
 
 ## Idempotency
 
-The Idempotency middleware is mounted globally in `lib/router/router.go`
+The Idempotency middleware is mounted globally in `pkg`
 so every POST route is automatically retry-safe — no per-route wiring
 required. The middleware self-gates: it only acts on POST requests that
 carry the `Idempotency-Key` header. Non-POST and untagged requests pay

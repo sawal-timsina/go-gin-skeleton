@@ -1,12 +1,13 @@
 package lib
 
 import (
-	"boilerplate-api/lib/auth"
-	"boilerplate-api/lib/config"
-	"boilerplate-api/lib/idempotency"
-	"boilerplate-api/lib/middlewares"
-	"boilerplate-api/lib/request_validator"
-	"boilerplate-api/lib/router"
+	"boilerplate-api/internal/auth"
+	"boilerplate-api/internal/config"
+	"boilerplate-api/internal/idempotency"
+	"boilerplate-api/internal/middlewares"
+	"boilerplate-api/internal/request_validator"
+	"boilerplate-api/internal/router"
+
 	"go.uber.org/fx"
 )
 

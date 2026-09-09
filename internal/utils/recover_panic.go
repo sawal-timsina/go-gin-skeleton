@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"boilerplate-api/lib/config"
+	"boilerplate-api/internal/config"
 )
 
 // RecoverPanic recovers panic in the application

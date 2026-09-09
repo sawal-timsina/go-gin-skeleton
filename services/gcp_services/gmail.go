@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	"boilerplate-api/lib/utils"
+	"boilerplate-api/internal/utils"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"

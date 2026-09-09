@@ -1,7 +1,8 @@
 package cli
 
 import (
-	"boilerplate-api/lib/config"
+	"boilerplate-api/internal/config"
+
 	"github.com/manifoldco/promptui"
 )
 

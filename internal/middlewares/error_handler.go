@@ -1,8 +1,8 @@
 package middlewares
 
 import (
-	"boilerplate-api/lib/api_errors"
-	"boilerplate-api/lib/config"
+	"boilerplate-api/internal/api_errors"
+	"boilerplate-api/internal/config"
 
 	"github.com/gin-gonic/gin"
 )

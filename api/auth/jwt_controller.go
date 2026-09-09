@@ -1,21 +1,19 @@
 package auth
 
 import (
+	"boilerplate-api/api/admin/user"
+	"boilerplate-api/internal/api_errors"
+	"boilerplate-api/internal/auth"
+	"boilerplate-api/internal/config"
+	"boilerplate-api/internal/constants"
+	"boilerplate-api/internal/json_response"
+	"boilerplate-api/internal/request_validator"
+	"boilerplate-api/internal/utils"
 	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
-
-	"boilerplate-api/api/admin/user"
-	"boilerplate-api/lib/api_errors"
-	"boilerplate-api/lib/auth"
-	"boilerplate-api/lib/config"
-	"boilerplate-api/lib/constants"
-	"boilerplate-api/lib/json_response"
-	"boilerplate-api/lib/request_validator"
-	"boilerplate-api/lib/types"
-	"boilerplate-api/lib/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
@@ -23,11 +21,11 @@ import (
 
 // JwtAuthController struct
 type JwtAuthController struct {
-	logger       config.Logger
-	userService  user.Service
-	jwtService   auth.JWTAuthService
-	env          config.Env
-	validator    request_validator.Validator
+	logger        config.Logger
+	userService   user.Service
+	jwtService    auth.JWTAuthService
+	env           config.Env
+	validator     request_validator.Validator
 	refreshTokens RefreshTokenRepository
 }
 

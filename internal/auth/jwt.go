@@ -3,9 +3,9 @@ package auth
 import (
 	"strings"
 
-	"boilerplate-api/lib/api_errors"
-	"boilerplate-api/lib/config"
-	"boilerplate-api/lib/constants"
+	"boilerplate-api/internal/api_errors"
+	"boilerplate-api/internal/config"
+	"boilerplate-api/internal/constants"
 
 	"github.com/golang-jwt/jwt/v4"
 )

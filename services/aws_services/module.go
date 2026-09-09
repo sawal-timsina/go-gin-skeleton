@@ -1,7 +1,8 @@
 package aws_services
 
 import (
-	"boilerplate-api/lib/config"
+	"boilerplate-api/internal/config"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"go.uber.org/fx"
 )

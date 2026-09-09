@@ -1,9 +1,9 @@
 package user
 
 import (
-	"boilerplate-api/lib/config"
-	"boilerplate-api/lib/middlewares"
-	"boilerplate-api/lib/router"
+	"boilerplate-api/internal/config"
+	"boilerplate-api/internal/middlewares"
+	"boilerplate-api/internal/router"
 )
 
 // SetupRoutes user routes

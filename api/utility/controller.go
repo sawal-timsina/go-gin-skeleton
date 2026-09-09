@@ -1,13 +1,14 @@
 package utility
 
 import (
+	"boilerplate-api/internal/api_errors"
+	"boilerplate-api/internal/config"
+	"boilerplate-api/internal/utils"
 	"net/http"
 	"path/filepath"
 
-	"boilerplate-api/lib/api_errors"
-	"boilerplate-api/lib/config"
-	"boilerplate-api/lib/utils"
 	"boilerplate-api/services/aws_services"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,16 +30,16 @@ func NewController(
 	}
 }
 
-//	@Tags			UtilityApi
-//	@Summary		handles file upload
-//	@Description	handles file upload
-//	@Security		Bearer
-//	@Produce		application/json
-//	@Param			file	formData	file		true	"Upload File"
-//	@Success		200		{object}	Response	"File Uploaded Successfully"
-//	@Failure		400		{object}	api_errors.Envelope
-//	@Router			/api/v1/utils/file-upload [post]
-//	@Id				FileUpload
+// @Tags			UtilityApi
+// @Summary		handles file upload
+// @Description	handles file upload
+// @Security		Bearer
+// @Produce		application/json
+// @Param			file	formData	file		true	"Upload File"
+// @Success		200		{object}	Response	"File Uploaded Successfully"
+// @Failure		400		{object}	api_errors.Envelope
+// @Router			/api/v1/utils/file-upload [post]
+// @Id				FileUpload
 func (uc Controller) FileUploadHandler(ctx *gin.Context) {
 	file, uploadFile, err := ctx.Request.FormFile("file")
 	if err != nil {
@@ -55,16 +56,16 @@ func (uc Controller) FileUploadHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-//	@Tags			UtilityApi
-//	@Summary		GetSignedUrl
-//	@Description	generate signed url
-//	@Security		Bearer
-//	@Produce		application/json
-//	@Param			image_url	query		string	false	"Image Url"
-//	@Success		200			{object}	json_response.Data[string]
-//	@Failure		400			{object}	json_response.Error[string]
-//	@Router			/api/v1/utils/images/signed_url [get]
-//	@Id				GetSignedUrl
+// @Tags			UtilityApi
+// @Summary		GetSignedUrl
+// @Description	generate signed url
+// @Security		Bearer
+// @Produce		application/json
+// @Param			image_url	query		string	false	"Image Url"
+// @Success		200			{object}	json_response.Data[string]
+// @Failure		400			{object}	json_response.Error[string]
+// @Router			/api/v1/utils/images/signed_url [get]
+// @Id				GetSignedUrl
 func (uc Controller) GetSignedUrl(ctx *gin.Context) {
 	imageUrl := ctx.Query("image_url")
 	if imageUrl == "" {

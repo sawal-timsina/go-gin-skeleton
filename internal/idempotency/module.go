@@ -3,7 +3,7 @@ package idempotency
 import (
 	"time"
 
-	"boilerplate-api/lib/config"
+	"boilerplate-api/internal/config"
 
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
@@ -14,7 +14,7 @@ import (
 //   - "mysql"  -> MySQLStore backed by the existing GORM DB.
 //   - "redis"  -> RedisStore (requires REDIS_ADDR).
 //   - ""       -> Noop (idempotency disabled). Default to keep behaviour
-//                 unchanged for existing deployments.
+//     unchanged for existing deployments.
 var Module = fx.Module(
 	"idempotency",
 	fx.Provide(NewRedisClient),

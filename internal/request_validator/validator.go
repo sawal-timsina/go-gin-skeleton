@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"boilerplate-api/lib/api_errors"
-	"boilerplate-api/lib/constants"
+	"boilerplate-api/internal/api_errors"
+	"boilerplate-api/internal/constants"
 
 	"github.com/go-playground/validator/v10"
 )

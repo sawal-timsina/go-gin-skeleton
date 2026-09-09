@@ -1,14 +1,13 @@
 package router
 
 import (
+	"boilerplate-api/internal/config"
+	"boilerplate-api/internal/middlewares"
 	"context"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
-
-	"boilerplate-api/lib/config"
-	"boilerplate-api/lib/middlewares"
 
 	"github.com/getsentry/sentry-go"
 	sentrygin "github.com/getsentry/sentry-go/gin"

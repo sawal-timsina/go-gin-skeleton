@@ -1,20 +1,18 @@
 package bootstrap
 
 import (
+	"boilerplate-api/api"
+	"boilerplate-api/cli"
+	"boilerplate-api/database/seeds"
+	"boilerplate-api/internal/config"
+	"boilerplate-api/internal/router"
+	"boilerplate-api/internal/utils"
+	"boilerplate-api/services"
+	"boilerplate-api/swagger"
 	"context"
 	"errors"
 	"net/http"
 	"time"
-
-	"boilerplate-api/api"
-	"boilerplate-api/cli"
-	"boilerplate-api/database/seeds"
-	"boilerplate-api/lib"
-	"boilerplate-api/lib/config"
-	"boilerplate-api/lib/router"
-	"boilerplate-api/lib/utils"
-	"boilerplate-api/services"
-	"boilerplate-api/swagger"
 
 	"go.uber.org/fx"
 )
@@ -23,7 +21,7 @@ const shutdownTimeout = 15 * time.Second
 
 // Module exported for initializing application
 var Module = fx.Options(
-	lib.Module,
+	internal.Module,
 	seeds.Module,
 	cli.Module,
 	services.Module,

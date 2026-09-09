@@ -1,15 +1,14 @@
 package utility
 
 import (
+	"boilerplate-api/internal/config"
+	"boilerplate-api/internal/constants"
+	"boilerplate-api/internal/utils"
 	"boilerplate-api/services"
 	"context"
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
-
-	"boilerplate-api/lib/config"
-	"boilerplate-api/lib/constants"
-	"boilerplate-api/lib/utils"
 )
 
 type UploadResponse struct {
@@ -97,20 +96,20 @@ func (s Service) UploadImage(file multipart.File, uploadFile *multipart.FileHead
 			}
 
 			return UploadResponse{
-					Message:    "Uploaded Successfully",
-					StatusCode: http.StatusOK,
-				}, &Response{
-					Success: true,
-					Message: "Uploaded Successfully",
-					Data:    signedURL,
-					Path:    uploadedOriginalURL,
-					Value: map[string]string{
-						"original_image_url":   constants.STORAGE_URL + s.env.StorageBucketName + uploadedOriginalURL,
-						"original_image_path":  uploadedOriginalURL,
-						"thumbnail_image_url":  constants.STORAGE_URL + s.env.StorageBucketName + uploadThumbnailUrl,
-						"thumbnail_image_path": uploadThumbnailUrl,
-					},
-				}, nil
+				Message:    "Uploaded Successfully",
+				StatusCode: http.StatusOK,
+			}, &Response{
+				Success: true,
+				Message: "Uploaded Successfully",
+				Data:    signedURL,
+				Path:    uploadedOriginalURL,
+				Value: map[string]string{
+					"original_image_url":   constants.STORAGE_URL + s.env.StorageBucketName + uploadedOriginalURL,
+					"original_image_path":  uploadedOriginalURL,
+					"thumbnail_image_url":  constants.STORAGE_URL + s.env.StorageBucketName + uploadThumbnailUrl,
+					"thumbnail_image_path": uploadThumbnailUrl,
+				},
+			}, nil
 		}
 	default:
 		originalFileName = "files/" + fileName

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	"boilerplate-api/lib/config"
+	"boilerplate-api/internal/config"
 
 	"gorm.io/gorm"
 )

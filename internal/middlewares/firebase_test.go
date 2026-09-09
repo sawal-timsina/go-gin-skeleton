@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"boilerplate-api/lib/constants"
+	"boilerplate-api/internal/constants"
 	"boilerplate-api/services"
 	"net/http"
 	"net/http/httptest"

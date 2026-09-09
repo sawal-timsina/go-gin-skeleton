@@ -1,10 +1,9 @@
 package gcp_services
 
 import (
+	"boilerplate-api/internal/config"
 	"fmt"
 	"path/filepath"
-
-	"boilerplate-api/lib/config"
 
 	"google.golang.org/api/option"
 )

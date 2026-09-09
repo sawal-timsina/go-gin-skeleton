@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"net/http"
 
-	"boilerplate-api/lib/config"
-	"boilerplate-api/lib/idempotency"
+	"boilerplate-api/internal/config"
+	"boilerplate-api/internal/idempotency"
 
 	"github.com/gin-gonic/gin"
 )

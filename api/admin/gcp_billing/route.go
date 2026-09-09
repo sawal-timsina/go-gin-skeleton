@@ -1,7 +1,7 @@
 package gcp_billing
 
 import (
-	"boilerplate-api/lib/router"
+	"boilerplate-api/internal/router"
 )
 
 // SetupRoutes -> sets up route for util entities

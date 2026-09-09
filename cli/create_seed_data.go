@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"boilerplate-api/lib/config"
+	"boilerplate-api/internal/config"
 )
 
 // CreateSeedData command
@@ -15,7 +15,7 @@ type CreateSeedData struct {
 func NewCreateSeedData(
 	logger config.Logger,
 	database config.Database,
-// seeds seeds.Seeds,
+	// seeds seeds.Seeds,
 ) CreateSeedData {
 	return CreateSeedData{
 		logger:   logger,

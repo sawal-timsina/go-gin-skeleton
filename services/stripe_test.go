@@ -1,10 +1,9 @@
 package services
 
 import (
+	"boilerplate-api/internal/config"
 	"bytes"
 	"testing"
-
-	"boilerplate-api/lib/config"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stripe/stripe-go/v76"

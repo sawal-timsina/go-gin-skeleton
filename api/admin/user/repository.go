@@ -2,7 +2,7 @@ package user
 
 import (
 	"boilerplate-api/api/user/user"
-	"boilerplate-api/lib/config"
+	"boilerplate-api/internal/config"
 
 	"gorm.io/gorm"
 )

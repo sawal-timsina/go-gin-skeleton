@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 
-	"boilerplate-api/lib/constants"
+	"boilerplate-api/internal/constants"
 
 	"github.com/gin-gonic/gin"
 )
